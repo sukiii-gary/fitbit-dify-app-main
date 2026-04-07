@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fitbit Segment Dashboard</title>
+  <style>
+    :root {
+      --panel: rgba(255, 250, 242, 0.92);
+      --panel-strong: #fffaf2;
+      --ink: #1e2521;
+      --muted: #5f6a62;
+      --line: rgba(33, 44, 36, 0.12);
+      --accent: #d55d3d;
+      --accent-soft: rgba(213, 93, 61, 0.12);
+      --accent-2: #215f53;
+      --warn: #9c3d2f;
+      --shadow: 0 18px 40px rgba(44, 33, 25, 0.08);
+      --radius: 22px;
+      --mono: "Cascadia Code", "SFMono-Regular", Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(213, 93, 61, 0.18), transparent 28%),
+        radial-gradient(circle at right 15%, rgba(33, 95, 83, 0.16), transparent 24%),
+        linear-gradient(180deg, #f6f1e8 0%, #efe6d8 100%);
+    }
+
+    .shell {
+      padding: 28px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(255, 250, 242, 0.95), rgba(248, 239, 225, 0.95));
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      padding: 24px 26px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.05;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 900px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .toolbar input,
+    .toolbar button,
+    textarea {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font: inherit;
+      background: rgba(255, 255, 255, 0.86);
+      color: var(--ink);
+    }
+
+    .toolbar input {
+      min-width: min(360px, 100%);
+      flex: 1 1 280px;
+    }
+
+    button {
+      cursor: pointer;
+      transition: transform 120ms ease, background 120ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #fff8f3;
+      border-color: transparent;
+    }
+
+    .secondary {
+      background: var(--accent-soft);
+      color: var(--accent-2);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 420px minmax(360px, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      min-height: 220px;
+      backdrop-filter: blur(8px);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+    }
+
+    .panel-header span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .list, .grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .item {
+      border: 1px solid rgba(33, 44, 36, 0.1);
+      border-radius: 16px;
+      background: var(--panel-strong);
+      padding: 14px;
+      cursor: pointer;
+      transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+      text-align: left;
+    }
+
+    .item:hover {
+      transform: translateY(-2px);
+      border-color: rgba(213, 93, 61, 0.4);
+      box-shadow: 0 14px 26px rgba(44, 33, 25, 0.08);
+    }
+
+    .item.active {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, rgba(213, 93, 61, 0.12), rgba(255, 250, 242, 0.96));
+    }
+
+    .item-title {
+      font-weight: 700;
+      margin-bottom: 6px;
+      word-break: break-word;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(33, 95, 83, 0.1);
+      color: var(--accent-2);
+    }
+
+    .badge.high {
+      background: rgba(156, 61, 47, 0.12);
+      color: var(--warn);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .stat {
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .stat label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      font-size: 19px;
+    }
+
+    .code {
+      margin: 0;
+      padding: 14px;
+      border-radius: 16px;
+      background: #1f2623;
+      color: #dce7df;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .empty {
+      color: var(--muted);
+      line-height: 1.6;
+      padding: 8px 2px;
+    }
+
+    .analysis-box {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(33, 95, 83, 0.08), rgba(255, 250, 242, 0.92));
+      border: 1px solid rgba(33, 95, 83, 0.12);
+    }
+
+    .analysis-box h3 {
+      margin: 0;
+    }
+
+    .analysis-box p, .analysis-box li {
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 20px;
+    }
+
+    .timeline-toolbar {
+      display: flex;
+      gap: 10px;
+      margin: 12px 0;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .timeline-toolbar input,
+    .timeline-toolbar select,
+    .timeline-toolbar button {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      background: rgba(255, 255, 255, 0.86);
+      color: var(--ink);
+    }
+
+    .timeline-toolbar input {
+      flex: 1 1 200px;
+      min-width: 140px;
+    }
+
+    .timeline-toolbar select {
+      flex: 1 1 150px;
+      min-width: 120px;
+    }
+
+    .timeline-toolbar input:disabled,
+    .timeline-toolbar select:disabled,
+    .timeline-toolbar button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .segment-toolbar {
+      display: grid;
+      gap: 10px;
+      margin: 12px 0;
+    }
+
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+      width: 100%;
+    }
+
+    @media (max-width: 1240px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow">Fitbit Dify App</div>
+      <h1>数据已经在库里，接下来重点是看懂它。</h1>
+      <p>这个页面直接连接当前 FastAPI 后端。你可以挑选用户，查看 segment 时间线，读取某一段的原始数据和模型输出，并优先查看已经保存的 Dify 分析结果。</p>
+      <div class="toolbar">
+        <input id="searchInput" type="search" placeholder="搜索 external_user_id 或姓名，例如 fitabase_4558609924">
+        <button id="searchButton" class="primary" type="button">搜索用户</button>
+        <button id="refreshButton" class="secondary" type="button">刷新列表</button>
+      </div>
+      <div id="statusLine" class="status">正在加载用户列表...</div>
+    </section>
+
+    <section class="layout">
+      <article class="panel">
+        <div class="panel-header">
+          <h2>用户</h2>
+          <span id="userCountLabel">0 条</span>
+        </div>
+        <div id="userList" class="list"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <h2>时间线</h2>
+          <span id="timelineLabel">未选择用户</span>
+        </div>
+        <div id="profileSummary" class="stats"></div>
+        <div class="timeline-toolbar">
+          <input id="dateSearchInput" type="text" placeholder="按日期搜索（格式：YYYY-MM-DD 或 YYYY-MM）" disabled>
+          <select id="dateSelect" placeholder="选择日期" disabled></select>
+          <button id="loadTimelineButton" class="secondary" type="button" disabled>加载该日期的时间线</button>
+          <button id="analyzeDayButton" class="primary" type="button" disabled style="display: none;">📅 分析此日期（全天对比）</button>
+        </div>
+        <div id="timelineList" class="list"></div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <h2>片段详情</h2>
+          <span id="detailLabel">未选择 segment</span>
+        </div>
+        <div id="detailStats" class="stats"></div>
+        <div class="segment-toolbar">
+          <textarea id="analysisQuery">请解释这一段 Fitbit 数据，并给出个性化建议。</textarea>
+          <button id="analyzeButton" class="primary" type="button" disabled>分析这一段</button>
+        </div>
+        <div id="analysisResult" class="grid"></div>
+        <pre id="detailJson" class="code">选择一条 segment 后，这里会显示原始数据和预测结果。</pre>
+      </article>
+    </section>
+  </div>
+
+  <script>
+    const state = {
+      users: [],
+      selectedUser: null,
+      selectedProfile: null,
+      availableDates: [],
+      selectedDate: null,
+      timeline: [],
+      selectedSegment: null,
+      selectedDetail: null,
+      selectedAnalysis: null,
+    };
+
+    const searchInput = document.getElementById("searchInput");
+    const statusLine = document.getElementById("statusLine");
+    const userCountLabel = document.getElementById("userCountLabel");
+    const userList = document.getElementById("userList");
+    const profileSummary = document.getElementById("profileSummary");
+    const dateSearchInput = document.getElementById("dateSearchInput");
+    const dateSelect = document.getElementById("dateSelect");
+    const loadTimelineButton = document.getElementById("loadTimelineButton");
+    const timelineList = document.getElementById("timelineList");
+    const timelineLabel = document.getElementById("timelineLabel");
+    const detailLabel = document.getElementById("detailLabel");
+    const detailStats = document.getElementById("detailStats");
+    const detailJson = document.getElementById("detailJson");
+    const analysisResult = document.getElementById("analysisResult");
+    const analyzeButton = document.getElementById("analyzeButton");
+    const analysisQuery = document.getElementById("analysisQuery");
+    const analyzeDayButton = document.getElementById("analyzeDayButton");
+
+    function setStatus(message) {
+      statusLine.textContent = message;
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+        },
+        ...options,
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `Request failed: ${response.status}`);
+      }
+      return response.json();
+    }
+
+    async function apiMaybe(path, options = {}) {
+      const response = await fetch(path, {
+        headers: {
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+        },
+        ...options,
+      });
+      if (response.status === 404) {
+        return null;
+      }
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `Request failed: ${response.status}`);
+      }
+      return response.json();
+    }
+
+    function normalizeAdvice(value) {
+      if (Array.isArray(value)) {
+        return value
+          .map(item => typeof item === "string" ? item.trim() : "")
+          .filter(Boolean);
+      }
+
+      if (typeof value === "string") {
+        return value
+          .split(/\r?\n+/)
+          .map(item => item.replace(/^\s*[-*•]\s*/, "").trim())
+          .filter(Boolean);
+      }
+
+      return [];
+    }
+
+    function formatJsonForDisplay(obj, indent = 0) {
+      const spaces = "  ".repeat(indent);
+      const nextSpaces = "  ".repeat(indent + 1);
+
+      if (obj === null || obj === undefined) {
+        return "null";
+      }
+
+      if (typeof obj === "string") {
+        return JSON.stringify(obj);
+      }
+
+      if (typeof obj === "number" || typeof obj === "boolean") {
+        return String(obj);
+      }
+
+      if (Array.isArray(obj)) {
+        // For large arrays (>30 items), use compact format
+        if (obj.length > 30) {
+          const preview = obj.slice(0, 3).map(v => JSON.stringify(v)).join(", ");
+          return `[${preview}, ... (${obj.length} items total)]`;
+        }
+        if (obj.length === 0) {
+          return "[]";
+        }
+        // For small arrays with primitives, use single line
+        if (obj.every(v => typeof v !== "object")) {
+          return "[" + obj.map(v => JSON.stringify(v)).join(", ") + "]";
+        }
+        // For mixed arrays, expand each item
+        const items = obj.map(v => nextSpaces + formatJsonForDisplay(v, indent + 1)).join(",\n");
+        return "[\n" + items + "\n" + spaces + "]";
+      }
+
+      if (typeof obj === "object") {
+        const keys = Object.keys(obj);
+        if (keys.length === 0) {
+          return "{}";
+        }
+        const items = keys.map(key => {
+          const val = formatJsonForDisplay(obj[key], indent + 1);
+          return `${nextSpaces}"${key}": ${val}`;
+        }).join(",\n");
+        return "{\n" + items + "\n" + spaces + "}";
+      }
+
+      return String(obj);
+    }
+
+    function renderUsers() {
+      userCountLabel.textContent = `${state.users.length} 条`;
+      userList.innerHTML = "";
+      if (!state.users.length) {
+        userList.innerHTML = `<div class="empty">没有匹配到用户。</div>`;
+        return;
+      }
+
+      for (const user of state.users) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `item${state.selectedUser?.id === user.id ? " active" : ""}`;
+        button.innerHTML = `
+          <div class="item-title">${user.external_user_id}</div>
+          <div class="meta">
+            ${user.name || "未命名用户"}<br>
+            segments: ${user.segment_count} · timezone: ${user.timezone}<br>
+            latest: ${user.last_segment_at || "n/a"}
+          </div>
+        `;
+        button.addEventListener("click", () => selectUser(user));
+        userList.appendChild(button);
+      }
+    }
+
+    function renderDateSelect() {
+      dateSelect.innerHTML = "";
+      dateSearchInput.disabled = !state.selectedUser;
+      dateSelect.disabled = !state.selectedUser || !state.availableDates.length;
+      loadTimelineButton.disabled = !state.selectedUser || !state.availableDates.length;
+
+      if (!state.availableDates || !state.availableDates.length) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "无可用日期";
+        dateSelect.appendChild(option);
+        return;
+      }
+
+      // Show all dates or filtered dates based on search input
+      let displayDates = state.availableDates;
+      const searchValue = dateSearchInput.value.trim();
+      if (searchValue) {
+        displayDates = state.availableDates.filter(date => date.startsWith(searchValue));
+      }
+
+      for (const date of displayDates) {
+        const option = document.createElement("option");
+        option.value = date;
+        option.textContent = date;
+        if (state.selectedDate === date) {
+          option.selected = true;
+        }
+        dateSelect.appendChild(option);
+      }
+    }
+
+    async function loadTimelineByDate() {
+      const selectedDate = dateSelect.value;
+      if (!state.selectedUser || !selectedDate) {
+        setStatus("请先选择日期");
+        return;
+      }
+
+      setStatus(`正在加载 ${selectedDate} 的时间线...`);
+      try {
+        const response = await api(
+          `/api/v1/users/${state.selectedUser.id}/timeline-by-date/${selectedDate}`
+        );
+        state.selectedDate = selectedDate;
+        state.timeline = response.items || [];
+        state.selectedSegment = null;
+        state.selectedDetail = null;
+        state.selectedAnalysis = null;
+        
+        // Load segment details in parallel to get raw_payload_json
+        setStatus(`正在加载 ${state.timeline.length} 个 segment 的详细数据...`);
+        const detailPromises = state.timeline.map(item => 
+          apiMaybe(`/api/v1/segments/${item.segment_id}`).catch(() => null)
+        );
+        const details = await Promise.all(detailPromises);
+        
+        // Merge details into timeline items
+        for (let i = 0; i < state.timeline.length; i++) {
+          if (details[i]) {
+            state.timeline[i].raw_payload_json = details[i].raw_payload_json;
+          }
+        }
+        
+        renderTimeline();
+        renderDailySleepSummary();
+        renderDetail();
+        
+        // ⭐ 显示"分析此日期"按钮
+        if (state.timeline.length > 0) {
+          analyzeDayButton.style.display = "inline-block";
+          analyzeDayButton.disabled = false;
+        } else {
+          analyzeDayButton.style.display = "none";
+          analyzeDayButton.disabled = true;
+        }
+        
+        setStatus(`已加载 ${selectedDate} 的时间线，共 ${state.timeline.length} 小时。`);
+      } catch (error) {
+        setStatus(`加载失败: ${error.message}`);
+        analyzeDayButton.style.display = "none";
+      }
+    }
+
+    function renderDailySleepSummary() {
+      // Remove old daily sleep summary if it exists
+      const oldSummary = document.getElementById("daily-sleep-summary");
+      if (oldSummary) {
+        oldSummary.remove();
+      }
+      
+      // Calculate daily sleep statistics
+      if (!state.timeline.length) return;
+      
+      let totalSleep = 0;
+      let totalInBed = 0;
+      
+      for (const item of state.timeline) {
+        const raw = item.raw_payload_json || {};
+        totalSleep += raw.sleep_minutes || 0;
+        totalInBed += raw.time_in_bed || 0;
+      }
+      
+      // Add daily summary to profileSummary if we have sleep data  
+      if (totalSleep > 0) {
+        const card = document.createElement("div");
+        card.id = "daily-sleep-summary";
+        card.className = "stat";
+        let html = `<label>当日睡眠总结</label><div style="margin-top:8px;">`;
+        html += `<div><strong>睡眠总时间：${Math.round(totalSleep)} 分钟</strong></div>`;
+        if (totalInBed > 0) {
+          const sleepQuality = ((totalSleep / totalInBed) * 100).toFixed(1);
+          html += `<div style="margin-top:4px;">在床时间：${Math.round(totalInBed)} 分钟</div>`;
+          html += `<div style="margin-top:4px;">睡眠质量：<strong>${sleepQuality}%</strong></div>`;
+        }
+        html += `</div>`;
+        card.innerHTML = html;
+        
+        // Add to the beginning of profileSummary
+        profileSummary.insertBefore(card, profileSummary.firstChild);
+      }
+    }
+
+    function renderProfileSummary() {
+      profileSummary.innerHTML = "";
+      if (!state.selectedUser || !state.selectedProfile) {
+        profileSummary.innerHTML = `<div class="empty">先选择一个用户。</div>`;
+        return;
+      }
+
+      const profile = state.selectedProfile.profile_json || {};
+      const goals = state.selectedProfile.goals_json || {};
+      const baseline = state.selectedProfile.baseline_stats_json || {};
+      const cards = [
+        ["主要目标", profile.primary_goal || goals.primary_goal || "未设置"],
+        ["活跃水平", profile.activity_level || "未设置"],
+        ["睡眠目标", goals.sleep_goal_hours ? `${goals.sleep_goal_hours} h` : "未设置"],
+        ["平均步数", baseline.avg_daily_steps ?? "未设置"],
+      ];
+
+      for (const [label, value] of cards) {
+        const card = document.createElement("div");
+        card.className = "stat";
+        card.innerHTML = `<label>${label}</label><strong>${value}</strong>`;
+        profileSummary.appendChild(card);
+      }
+    }
+
+    function renderTimeline() {
+      timelineList.innerHTML = "";
+      if (!state.timeline.length) {
+        timelineList.innerHTML = `<div class="empty">这个用户还没有时间线数据。</div>`;
+        return;
+      }
+
+      for (const item of state.timeline) {
+        const badgeClass = item.top_label === "fatigue_high" ? "badge high" : "badge";
+        const raw = item.raw_payload_json || {};
+        const sleep = raw.sleep_minutes ?? 0;
+        const inbed = raw.time_in_bed ?? 0;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `item${state.selectedSegment?.segment_id === item.segment_id ? " active" : ""}`;
+        
+        let sleepDisplay = "";
+        if (sleep > 0 || inbed > 0) {
+          if (inbed > 0) {
+            const quality = ((sleep / inbed) * 100).toFixed(0);
+            sleepDisplay = `<div style="margin-top:6px; font-size:12px;"><span style="color:var(--accent);">💤 ${sleep.toFixed(0)}/${inbed.toFixed(0)} min (${quality}%)</span></div>`;
+          } else {
+            sleepDisplay = `<div style="margin-top:6px; font-size:12px;"><span style="color:var(--accent);">💤 ${sleep.toFixed(0)} min</span></div>`;
+          }
+        }
+        
+        button.innerHTML = `
+          <div class="item-title">${item.segment_start}</div>
+          <div class="meta">
+            ${item.segment_end}<br>
+            granularity: ${item.granularity}
+          </div>
+          ${sleepDisplay}
+          <div style="margin-top:10px;">
+            <span class="${badgeClass}">${item.top_label || "未预测"}</span>
+          </div>
+        `;
+        button.addEventListener("click", () => selectSegment(item));
+        timelineList.appendChild(button);
+      }
+    }
+
+    function renderDetail() {
+      detailStats.innerHTML = "";
+      analysisResult.innerHTML = "";
+      analyzeButton.disabled = !state.selectedSegment;
+
+      if (!state.selectedDetail || !state.selectedSegment) {
+        detailLabel.textContent = "未选择 segment";
+        detailJson.textContent = "选择一条 segment 后，这里会显示原始数据和预测结果。";
+        return;
+      }
+
+      detailLabel.textContent = state.selectedSegment.segment_id;
+      const prediction = state.selectedDetail.predictions?.[0];
+      const raw = state.selectedDetail.raw_payload_json || {};
+      const hr_stats = raw.heart_rate_stats || {};
+      
+      const stats = [
+        ["步数", raw.steps ?? 0],
+        ["睡眠分钟", raw.sleep_minutes ?? 0],
+        ["在床时间", `${raw.time_in_bed ?? 0} min`],
+      ];
+      
+      // Add sleep quality percentage if both values are present
+      if ((raw.sleep_minutes ?? 0) > 0 && (raw.time_in_bed ?? 0) > 0) {
+        const sleepQuality = ((raw.sleep_quality ?? 0) * 100).toFixed(1);
+        stats.push(["睡眠质量", `${sleepQuality}%`]);
+      }
+      
+      stats.push(
+        ["久坐分钟", raw.sedentary_minutes ?? 0],
+        ["活跃分钟", raw.active_minutes ?? 0],
+      );
+      
+      // Add heart rate stats if available
+      if (hr_stats.mean) {
+        stats.push(
+          ["心率均值", `${hr_stats.mean} bpm`],
+          ["心率区间", `${hr_stats.min}-${hr_stats.max} bpm`],
+          ["心率Std", `${hr_stats.std}`]
+        );
+      }
+      
+      stats.push(
+        ["主预测", prediction?.top_label || "未预测"],
+        ["预测数", state.selectedDetail.predictions?.length || 0]
+      );
+
+      for (const [label, value] of stats) {
+        const card = document.createElement("div");
+        card.className = "stat";
+        card.innerHTML = `<label>${label}</label><strong>${value}</strong>`;
+        detailStats.appendChild(card);
+      }
+
+      detailJson.textContent = formatJsonForDisplay(state.selectedDetail);
+      if (state.selectedAnalysis) {
+        renderAnalysis();
+      } else {
+        analysisResult.innerHTML = `<div class="empty">这条 segment 还没有历史分析结果，你可以手动点击“分析这一段”。</div>`;
+      }
+    }
+
+    function renderAnalysis() {
+      analysisResult.innerHTML = "";
+      if (!state.selectedAnalysis) {
+        return;
+      }
+
+      const output = state.selectedAnalysis.llm_output || {};
+      const advice = normalizeAdvice(output.personalized_advice);
+      const createdAt = state.selectedAnalysis.created_at ? `<p>保存时间: ${state.selectedAnalysis.created_at}</p>` : "";
+      const analysisTypeDisplay = state.selectedAnalysis.dify_payload?.inputs?.analysis_type === "day_level" 
+        ? "📅 日级分析（与基线对比）" 
+        : "📍 小时级分析";
+      const box = document.createElement("div");
+      box.className = "analysis-box";
+      box.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+          <span class="badge ${state.selectedAnalysis.model_output?.top_label === "fatigue_high" ? "high" : ""}">
+            ${state.selectedAnalysis.status}
+          </span>
+          <span style="font-size: 12px; color: var(--muted);">${analysisTypeDisplay}</span>
+        </div>
+        ${createdAt}
+        <h3>Summary</h3>
+        <p>${output.summary || "无 summary"}</p>
+        <h3>Explanation</h3>
+        <p>${output.explanation || output.message || "无 explanation"}</p>
+        <h3>Advice</h3>
+        <ul>${advice.map(item => `<li>${item}</li>`).join("") || "<li>无 advice</li>"}</ul>
+        <h3>Confidence</h3>
+        <p>${output.confidence_note || "无 confidence note"}</p>
+      `;
+      analysisResult.appendChild(box);
+    }
+
+    async function loadUsers() {
+      setStatus("正在加载用户列表...");
+      const q = searchInput.value.trim();
+      const query = new URLSearchParams({ limit: "50" });
+      if (q) {
+        query.set("q", q);
+      }
+      const payload = await api(`/api/v1/users?${query.toString()}`);
+      state.users = payload.items || [];
+      renderUsers();
+      setStatus(`已加载 ${payload.items.length} 个用户。`);
+      if (state.users.length) {
+        await selectUser(state.users[0], false);
+      } else {
+        state.selectedUser = null;
+        state.selectedProfile = null;
+        state.timeline = [];
+        state.selectedSegment = null;
+        state.selectedDetail = null;
+        state.selectedAnalysis = null;
+        renderProfileSummary();
+        renderTimeline();
+        renderDetail();
+      }
+    }
+
+    async function selectUser(user, updateUserList = true) {
+      try {
+        console.log("selectUser called with user:", user.external_user_id);
+        state.selectedUser = user;
+        state.selectedSegment = null;
+        state.selectedDetail = null;
+        state.selectedAnalysis = null;
+        state.availableDates = [];
+        state.selectedDate = null;
+        state.timeline = [];
+        
+        if (updateUserList) {
+          renderUsers();
+        }
+        
+        timelineLabel.textContent = user.external_user_id;
+        setStatus(`正在加载 ${user.external_user_id} 的画像和日期列表...`);
+        
+        console.log("Calling APIs for user:", user.id);
+        const [profile, datesResp] = await Promise.all([
+          api(`/api/v1/users/${user.id}/profile`),
+          api(`/api/v1/users/${user.id}/timeline-dates`),
+        ]);
+        console.log("APIs completed. Profile:", profile, "Dates:", datesResp);
+        
+        state.selectedProfile = profile;
+        state.availableDates = datesResp.dates || [];
+        console.log("Available dates count:", state.availableDates.length);
+        
+        renderProfileSummary();
+        console.log("renderProfileSummary completed");
+        renderDateSelect();
+        console.log("renderDateSelect completed");
+        renderTimeline();
+        console.log("renderTimeline completed");
+        renderDetail();
+        console.log("renderDetail completed");
+        
+        setStatus(`已选择 ${user.external_user_id}，共 ${state.availableDates.length} 个日期的数据。`);
+      } catch (error) {
+        console.error("selectUser error:", error);
+        setStatus(`加载用户失败: ${error.message}`);
+      }
+    }
+
+    async function selectSegment(item) {
+      state.selectedSegment = item;
+      renderTimeline();
+      setStatus(`正在加载 segment ${item.segment_id} ...`);
+      const [detail, latestAnalysis] = await Promise.all([
+        api(`/api/v1/segments/${item.segment_id}`),
+        apiMaybe(`/api/v1/segments/${item.segment_id}/latest-analysis`),
+      ]);
+      state.selectedDetail = detail;
+      state.selectedAnalysis = latestAnalysis;
+      renderDetail();
+      setStatus(
+        latestAnalysis
+          ? `已加载 segment ${item.segment_id}，并读取到最近一次分析结果。`
+          : `已加载 segment ${item.segment_id}，这条记录还没有历史分析结果。`
+      );
+    }
+
+    async function runAnalysis() {
+      if (!state.selectedSegment) {
+        return;
+      }
+      analyzeButton.disabled = true;
+      setStatus("正在进行小时级分析...");
+      try {
+        state.selectedAnalysis = await api(`/api/v1/segments/${state.selectedSegment.segment_id}/analyze`, {
+          method: "POST",
+          body: JSON.stringify({
+            user_query: analysisQuery.value.trim() || "请解释这一段 Fitbit 数据，并给出个性化建议。",
+            analysis_type: "hour_level",
+          }),
+        });
+        renderAnalysis();
+        setStatus(`小时级分析完成，status=${state.selectedAnalysis.status}。`);
+      } catch (error) {
+        setStatus(`分析失败: ${error.message}`);
+      } finally {
+        analyzeButton.disabled = false;
+      }
+    }
+
+    async function analyzeDay() {
+      // ⭐ 直接分析整天数据，使用 day_level 模式
+      if (!state.timeline || state.timeline.length === 0) {
+        setStatus("❌ 错误：没有该日期的时间线数据。");
+        return;
+      }
+      
+      // 验证时间线中的所有 segments 都是同一天
+      const firstDate = new Date(state.timeline[0].segment_start).toDateString();
+      const allSameDate = state.timeline.every(seg => 
+        new Date(seg.segment_start).toDateString() === firstDate
+      );
+      
+      if (!allSameDate) {
+        setStatus("❌ 错误：时间线数据不完整或跨越多天，请重新加载。");
+        return;
+      }
+      
+      analyzeDayButton.disabled = true;
+      setStatus(`正在进行 ${state.selectedDate} 的日级全天分析（包含 ${state.timeline.length} 小时的数据）...`);
+      try {
+        // 使用该日期的第一个 segment ID，后端会自动聚合该日期的所有数据
+        const firstSegment = state.timeline[0];
+        state.selectedSegment = firstSegment;
+        state.selectedAnalysis = await api(`/api/v1/segments/${firstSegment.segment_id}/analyze`, {
+          method: "POST",
+          body: JSON.stringify({
+            user_query: `请全面分析${state.selectedDate}的整体表现，包括步数、心率、活动强度、睡眠等指标。与该用户的长期基线数据对比，评估该天的表现是否超出常规。`,
+            analysis_type: "day_level",
+          }),
+        });
+        
+        // 更新详情面板
+        if (state.timeline.length > 0) {
+          const detail = await api(`/api/v1/segments/${firstSegment.segment_id}`);
+          state.selectedDetail = detail;
+        }
+        
+        renderDetail();
+        renderAnalysis();
+        setStatus(`✅ ${state.selectedDate} 的日级分析完成。包含 ${state.timeline.length} 小时的聚合数据。`);
+      } catch (error) {
+        setStatus(`❌ 日级分析失败: ${error.message}。请检查数据库中是否有该日期的完整数据。`);
+      } finally {
+        analyzeDayButton.disabled = false;
+      }
+    }
+
+    document.getElementById("searchButton").addEventListener("click", loadUsers);
+    document.getElementById("refreshButton").addEventListener("click", loadUsers);
+    analyzeButton.addEventListener("click", runAnalysis);
+    analyzeDayButton.addEventListener("click", analyzeDay);
+    dateSearchInput.addEventListener("input", renderDateSelect);
+    loadTimelineButton.addEventListener("click", loadTimelineByDate);
+    dateSelect.addEventListener("change", () => {
+      state.selectedDate = dateSelect.value;
+    });
+    searchInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        loadUsers();
+      }
+    });
+
+    loadUsers().catch((error) => {
+      setStatus(`初始化失败: ${error.message}`);
+    });
+  </script>
+</body>
+</html>

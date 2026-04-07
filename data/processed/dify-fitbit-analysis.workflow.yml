@@ -1,0 +1,399 @@
+app:
+  description: "根据 Fitbit 分段数据、用户画像、滚动记忆和模型概率，生成结构化的个性化解释。"
+  icon: "📊"
+  icon_background: "#FFEAD5"
+  mode: workflow
+  name: "Fitbit Segment Analysis"
+  use_icon_as_answer_icon: false
+dependencies: []
+kind: app
+version: "0.3.0"
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      enabled: false
+      allowed_file_extensions: []
+      allowed_file_types: []
+      allowed_file_upload_methods: []
+      fileUploadConfig:
+        audio_file_size_limit: 0
+        batch_count_limit: 0
+        file_size_limit: 0
+        image_file_size_limit: 0
+        video_file_size_limit: 0
+        workflow_file_upload_limit: 0
+    image:
+      enabled: false
+      number_limits: 0
+      transfer_methods: []
+    opening_statement: ""
+    retriever_resource:
+      enabled: false
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ""
+      voice: ""
+  graph:
+    edges:
+      - id: "start_to_llm"
+        source: "start_node"
+        sourceHandle: "source"
+        target: "llm_node"
+        targetHandle: "target"
+        type: "custom"
+        data:
+          isInIteration: false
+          isInLoop: false
+          sourceType: "start"
+          targetType: "llm"
+      - id: "llm_to_parse"
+        source: "llm_node"
+        sourceHandle: "source"
+        target: "parse_node"
+        targetHandle: "target"
+        type: "custom"
+        data:
+          isInIteration: false
+          isInLoop: false
+          sourceType: "llm"
+          targetType: "code"
+      - id: "parse_to_end"
+        source: "parse_node"
+        sourceHandle: "source"
+        target: "end_node"
+        targetHandle: "target"
+        type: "custom"
+        data:
+          isInIteration: false
+          isInLoop: false
+          sourceType: "code"
+          targetType: "end"
+    nodes:
+      - id: "start_node"
+        type: "custom"
+        position:
+          x: 0
+          y: 0
+        positionAbsolute:
+          x: 0
+          y: 0
+        width: 244
+        height: 378
+        sourcePosition: "right"
+        targetPosition: "left"
+        selected: false
+        data:
+          desc: "接收后端通过 /workflows/run 传入的所有分析输入。"
+          selected: false
+          title: "Start"
+          type: "start"
+          variables:
+            - label: "user_id"
+              max_length: 128
+              options: []
+              required: true
+              type: "text-input"
+              variable: "user_id"
+            - label: "segment_id"
+              max_length: 128
+              options: []
+              required: true
+              type: "text-input"
+              variable: "segment_id"
+            - label: "profile_prompt_prefix"
+              max_length: 4000
+              options: []
+              required: false
+              type: "paragraph"
+              variable: "profile_prompt_prefix"
+            - label: "profile_json"
+              max_length: 8000
+              options: []
+              required: false
+              type: "paragraph"
+              variable: "profile_json"
+            - label: "goals_json"
+              max_length: 4000
+              options: []
+              required: false
+              type: "paragraph"
+              variable: "goals_json"
+            - label: "thresholds_json"
+              max_length: 4000
+              options: []
+              required: false
+              type: "paragraph"
+              variable: "thresholds_json"
+            - label: "baseline_stats_json"
+              max_length: 4000
+              options: []
+              required: false
+              type: "paragraph"
+              variable: "baseline_stats_json"
+            - label: "rolling_memory_summary"
+              max_length: 8000
+              options: []
+              required: false
+              type: "paragraph"
+              variable: "rolling_memory_summary"
+            - label: "feature_summary"
+              max_length: 4000
+              options: []
+              required: true
+              type: "paragraph"
+              variable: "feature_summary"
+            - label: "probability_json"
+              max_length: 4000
+              options: []
+              required: true
+              type: "paragraph"
+              variable: "probability_json"
+            - label: "top_label"
+              max_length: 128
+              options: []
+              required: true
+              type: "text-input"
+              variable: "top_label"
+            - label: "user_query"
+              max_length: 4000
+              options: []
+              required: true
+              type: "paragraph"
+              variable: "user_query"
+          x-outputs:
+            - name: "user_id"
+              type: "string"
+            - name: "segment_id"
+              type: "string"
+            - name: "profile_prompt_prefix"
+              type: "string"
+            - name: "profile_json"
+              type: "string"
+            - name: "goals_json"
+              type: "string"
+            - name: "thresholds_json"
+              type: "string"
+            - name: "baseline_stats_json"
+              type: "string"
+            - name: "rolling_memory_summary"
+              type: "string"
+            - name: "feature_summary"
+              type: "string"
+            - name: "probability_json"
+              type: "string"
+            - name: "top_label"
+              type: "string"
+            - name: "user_query"
+              type: "string"
+      - id: "llm_node"
+        type: "custom"
+        position:
+          x: 320
+          y: 0
+        positionAbsolute:
+          x: 320
+          y: 0
+        width: 244
+        height: 132
+        sourcePosition: "right"
+        targetPosition: "left"
+        selected: false
+        data:
+          type: "llm"
+          title: "LLM Analysis"
+          desc: "根据用户画像、最近记忆、当前特征和模型输出生成结构化 JSON 解释。"
+          selected: false
+          context:
+            enabled: false
+            variable_selector: []
+          model:
+            completion_params:
+              temperature: 0.2
+              max_tokens: 1200
+            mode: "chat"
+            name: "gpt-4o-mini"
+            provider: "langgenius/openai/openai"
+          prompt_template:
+            - id: "system_prompt_template"
+              role: "system"
+              text: |-
+                {{#start_node.profile_prompt_prefix#}}
+
+                你会收到四类信息：
+                1. 用户长期画像与目标
+                2. 最近滚动窗口的记忆摘要
+                3. 当前 Fitbit 数据片段的特征摘要
+                4. 模型输出的类别概率
+
+                要求：
+                - 先解释模型结果，再结合用户画像给出建议
+                - 不做医学诊断
+                - 如果证据不足，要明确说明不确定性
+                - 只输出 JSON，不要输出 Markdown，不要输出额外说明
+                - JSON 必须包含 summary、explanation、personalized_advice、confidence_note 四个字段
+                - personalized_advice 可以是字符串，也可以是字符串数组
+            - id: "user_prompt_template"
+              role: "user"
+              text: |-
+                用户画像: {{#start_node.profile_json#}}
+                目标: {{#start_node.goals_json#}}
+                阈值: {{#start_node.thresholds_json#}}
+                基线: {{#start_node.baseline_stats_json#}}
+
+                近期记忆: {{#start_node.rolling_memory_summary#}}
+
+                当前特征: {{#start_node.feature_summary#}}
+
+                模型结果:
+                top_label={{#start_node.top_label#}}
+                probabilities={{#start_node.probability_json#}}
+
+                用户问题:
+                {{#start_node.user_query#}}
+          variables: []
+          vision:
+            enabled: false
+          x-outputs:
+            - name: "text"
+              type: "string"
+          x-io-contracts:
+            fixed_outputs:
+              - name: "text"
+                type: "string"
+      - id: "parse_node"
+        type: "custom"
+        position:
+          x: 640
+          y: 0
+        positionAbsolute:
+          x: 640
+          y: 0
+        width: 244
+        height: 54
+        sourcePosition: "right"
+        targetPosition: "left"
+        selected: false
+        data:
+          type: "code"
+          title: "Parse JSON"
+          desc: "把 LLM 输出解析成稳定的 workflow 输出字段。"
+          selected: false
+          code_language: "python3"
+          code: |-
+            def main(text: str) -> dict:
+                import json
+
+                raw = text.strip()
+                if raw.startswith("```"):
+                    raw = raw.strip("`")
+                    if raw.startswith("json"):
+                        raw = raw[4:].strip()
+
+                try:
+                    parsed = json.loads(raw)
+                except Exception:
+                    return {
+                        "summary": "LLM 返回了非 JSON 输出。",
+                        "explanation": text,
+                        "personalized_advice": "请检查 LLM 节点的提示词，确保只输出 JSON。",
+                        "confidence_note": "解析失败，已返回原始文本。",
+                    }
+
+                advice = parsed.get("personalized_advice", "")
+                if isinstance(advice, list):
+                    advice = "\n".join(f"- {item}" for item in advice)
+                elif advice is None:
+                    advice = ""
+                else:
+                    advice = str(advice)
+
+                return {
+                    "summary": str(parsed.get("summary", "")),
+                    "explanation": str(parsed.get("explanation", "")),
+                    "personalized_advice": advice,
+                    "confidence_note": str(parsed.get("confidence_note", "")),
+                }
+          variables:
+            - value_selector:
+                - "llm_node"
+                - "text"
+              variable: "text"
+          outputs:
+            summary:
+              children: null
+              type: "string"
+            explanation:
+              children: null
+              type: "string"
+            personalized_advice:
+              children: null
+              type: "string"
+            confidence_note:
+              children: null
+              type: "string"
+          x-outputs:
+            - name: "summary"
+              type: "string"
+            - name: "explanation"
+              type: "string"
+            - name: "personalized_advice"
+              type: "string"
+            - name: "confidence_note"
+              type: "string"
+      - id: "end_node"
+        type: "custom"
+        position:
+          x: 960
+          y: 0
+        positionAbsolute:
+          x: 960
+          y: 0
+        width: 244
+        height: 140
+        sourcePosition: "right"
+        targetPosition: "left"
+        selected: false
+        data:
+          desc: "输出给 /workflows/run 的最终字段。"
+          selected: false
+          title: "End"
+          type: "end"
+          outputs:
+            - value_selector:
+                - "parse_node"
+                - "summary"
+              variable: "summary"
+            - value_selector:
+                - "parse_node"
+                - "explanation"
+              variable: "explanation"
+            - value_selector:
+                - "parse_node"
+                - "personalized_advice"
+              variable: "personalized_advice"
+            - value_selector:
+                - "parse_node"
+                - "confidence_note"
+              variable: "confidence_note"
+          x-outputs:
+            - name: "summary"
+              type: "string"
+            - name: "explanation"
+              type: "string"
+            - name: "personalized_advice"
+              type: "string"
+            - name: "confidence_note"
+              type: "string"
+    viewport:
+      x: 0
+      y: 0
+      zoom: 1

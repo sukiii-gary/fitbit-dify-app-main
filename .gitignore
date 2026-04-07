@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.env
+backend/.env
+backend/app.db
+*.db
+
+data/raw/**
+!data/raw/.gitkeep
+!data/raw/fitbit-export/
+!data/raw/fitbit-export/.gitkeep
+
+.pytest_cache/

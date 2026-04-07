@@ -1,0 +1,54 @@
+{
+  "app_type": "workflow",
+  "input_variables": [
+    "user_id",
+    "segment_id",
+    "profile_prompt_prefix",
+    "profile_json",
+    "goals_json",
+    "thresholds_json",
+    "baseline_stats_json",
+    "rolling_memory_summary",
+    "feature_summary",
+    "probability_json",
+    "top_label",
+    "user_query"
+  ],
+  "expected_output_fields": [
+    "summary",
+    "explanation",
+    "personalized_advice",
+    "confidence_note"
+  ],
+  "recommended_node_order": [
+    "Start",
+    "Template or Code",
+    "LLM",
+    "End"
+  ],
+  "system_prompt_template": "{{profile_prompt_prefix}}\n\n你会收到四类信息：\n1. 用户长期画像与目标\n2. 最近滚动窗口的记忆摘要\n3. 当前 Fitbit 数据片段的特征摘要\n4. 模型输出的类别概率\n\n要求：\n- 先解释模型结果，再结合用户画像给出建议\n- 不做医学诊断\n- 如果证据不足，要明确说明不确定性\n- 输出 JSON，字段包含 summary、explanation、personalized_advice、confidence_note\n",
+  "user_message_template": "用户画像: {{profile_json}}\n目标: {{goals_json}}\n阈值: {{thresholds_json}}\n基线: {{baseline_stats_json}}\n\n近期记忆: {{rolling_memory_summary}}\n\n当前特征: {{feature_summary}}\n\n模型结果:\ntop_label={{top_label}}\nprobabilities={{probability_json}}\n\n用户问题:\n{{user_query}}\n",
+  "integration_notes": [
+    "后端通过 /workflows/run 以 blocking 模式调用该 workflow。",
+    "Workflow 必须先发布，否则 API 无法执行。",
+    "End/Output 节点必须暴露 summary、explanation、personalized_advice、confidence_note 这几个字段。"
+  ],
+  "sample_api_payload": {
+    "inputs": {
+      "user_id": "demo_user_001",
+      "segment_id": "demo_segment_001",
+      "profile_prompt_prefix": "你正在为一位 Fitbit 用户提供个性化疲劳与恢复分析。优先结合其步数、活动分钟、久坐时间、睡眠和心率基线解释模型输出，不要做医学诊断；如果睡眠追踪或心率覆盖不足，请明确说明不确定性。",
+      "profile_json": "{\"source\": \"demo\", \"primary_goal\": \"sleep_improvement\", \"activity_level\": \"lightly_active\", \"heart_rate_coverage\": \"good\", \"peak_activity_window\": \"afternoon\"}",
+      "goals_json": "{\"primary_goal\": \"sleep_improvement\", \"daily_steps_goal\": 7000, \"sleep_goal_hours\": 7.0, \"active_minutes_goal\": 90}",
+      "thresholds_json": "{\"fatigue_high_threshold\": 0.7, \"low_sleep_minutes_threshold\": 360, \"low_activity_steps_threshold\": 4250, \"high_sedentary_minutes_threshold\": 960, \"elevated_hr_threshold\": 85}",
+      "baseline_stats_json": "{\"avg_daily_steps\": 6200, \"avg_daily_active_minutes\": 95, \"avg_daily_sedentary_minutes\": 780, \"avg_daily_sleep_minutes\": 390, \"heart_rate_mean\": 79.4}",
+      "rolling_memory_summary": "{\"window_type\": \"last_7_segments\", \"segment_count\": 7, \"avg_steps\": 1086.14, \"avg_sleep_minutes\": 12.0, \"avg_heart_rate\": 80.2}",
+      "feature_summary": "steps=1209.0, calories=114.0, sleep_minutes=0.0, sedentary_minutes=35.0, active_minutes=25.0, heart_rate_mean=82.4",
+      "probability_json": "{\"fatigue_low\": 0.45, \"fatigue_medium\": 0.2, \"fatigue_high\": 0.35}",
+      "top_label": "fatigue_low",
+      "user_query": "请解释这一段 Fitbit 数据，并给出个性化建议。"
+    },
+    "response_mode": "blocking",
+    "user": "demo_user_001"
+  }
+}
